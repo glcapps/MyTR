@@ -44,6 +44,14 @@
         background: radial-gradient(circle at top, rgba(34, 211, 238, 0.18), rgba(15, 23, 42, 0.96));
         z-index: 50;
       }
+      @media (min-width: 1024px) {
+        body.workout-mode #run-panel {
+          inset: 2rem;
+          max-width: 960px;
+          margin: 0 auto;
+          border-radius: 2rem;
+        }
+      }
       body.workout-mode #timer-display {
         font-size: clamp(4rem, 18vw, 10rem);
         letter-spacing: 0.02em;
@@ -67,7 +75,7 @@
       rel="stylesheet"
     />
   </head>
-  <body class="bg-ink text-white min-h-screen">
+  <body class="bg-ink text-white min-h-screen font-body">
     <div class="min-h-screen bg-gradient-to-br from-ink via-[#111827] to-[#0b1326]">
       <header class="px-6 py-6 max-w-5xl mx-auto" data-workout-hide>
         <div class="flex items-center justify-between">
@@ -87,9 +95,9 @@
         </div>
       </header>
 
-      <main class="px-6 pb-16 max-w-5xl mx-auto">
-        <section class="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
-          <div class="rounded-3xl border border-white/10 bg-white/5 p-8 shadow-[0_20px_60px_-30px_rgba(94,234,212,0.45)]">
+      <main class="px-6 pb-16 max-w-6xl mx-auto">
+        <section class="grid gap-6 lg:grid-cols-[1.1fr_auto]">
+          <div class="rounded-3xl border border-white/10 bg-white/5 p-8 shadow-[0_20px_60px_-30px_rgba(94,234,212,0.45)] lg:max-w-3xl">
             <div data-workout-hide>
               <div class="flex items-start justify-between">
                 <div>
@@ -102,31 +110,76 @@
                 <div class="rounded-full bg-white/10 px-4 py-2 text-xs text-mint">Ready to Install</div>
               </div>
 
-              <div class="mt-8 flex flex-wrap items-center gap-3">
-                <button
-                  class="template-btn rounded-full border border-white/15 px-4 py-2 text-sm text-white/90 hover:border-white/40"
-                  data-work="20"
-                  data-rest="10"
-                  data-rounds="8"
-                >
-                  Tabata 20/10 x8
-                </button>
-                <button
-                  class="template-btn rounded-full border border-white/15 px-4 py-2 text-sm text-white/90 hover:border-white/40"
-                  data-work="40"
-                  data-rest="20"
-                  data-rounds="6"
-                >
-                  HIIT 40/20 x6
-                </button>
-                <button
-                  class="template-btn rounded-full border border-white/15 px-4 py-2 text-sm text-white/90 hover:border-white/40"
-                  data-work="60"
-                  data-rest="30"
-                  data-rounds="5"
-                >
-                  Strength 60/30 x5
-                </button>
+              <div class="mt-8 grid gap-3 sm:grid-cols-2">
+                <div class="rounded-2xl border border-white/10 bg-black/30 p-3">
+                  <p class="text-sm text-white">Tabata 20/10 x8</p>
+                  <div class="mt-2 flex flex-wrap gap-2">
+                    <button
+                      class="template-use rounded-full border border-white/15 px-3 py-1 text-xs text-white/80 hover:border-white/40"
+                      data-name="Tabata 20/10 x8"
+                      data-work="20"
+                      data-rest="10"
+                      data-rounds="8"
+                    >
+                      Use
+                    </button>
+                    <button
+                      class="template-save rounded-full border border-white/15 px-3 py-1 text-xs text-white/60 hover:border-white/40"
+                      data-name="Tabata 20/10 x8"
+                      data-work="20"
+                      data-rest="10"
+                      data-rounds="8"
+                    >
+                      Save
+                    </button>
+                  </div>
+                </div>
+                <div class="rounded-2xl border border-white/10 bg-black/30 p-3">
+                  <p class="text-sm text-white">HIIT 40/20 x6</p>
+                  <div class="mt-2 flex flex-wrap gap-2">
+                    <button
+                      class="template-use rounded-full border border-white/15 px-3 py-1 text-xs text-white/80 hover:border-white/40"
+                      data-name="HIIT 40/20 x6"
+                      data-work="40"
+                      data-rest="20"
+                      data-rounds="6"
+                    >
+                      Use
+                    </button>
+                    <button
+                      class="template-save rounded-full border border-white/15 px-3 py-1 text-xs text-white/60 hover:border-white/40"
+                      data-name="HIIT 40/20 x6"
+                      data-work="40"
+                      data-rest="20"
+                      data-rounds="6"
+                    >
+                      Save
+                    </button>
+                  </div>
+                </div>
+                <div class="rounded-2xl border border-white/10 bg-black/30 p-3">
+                  <p class="text-sm text-white">Strength 60/30 x5</p>
+                  <div class="mt-2 flex flex-wrap gap-2">
+                    <button
+                      class="template-use rounded-full border border-white/15 px-3 py-1 text-xs text-white/80 hover:border-white/40"
+                      data-name="Strength 60/30 x5"
+                      data-work="60"
+                      data-rest="30"
+                      data-rounds="5"
+                    >
+                      Use
+                    </button>
+                    <button
+                      class="template-save rounded-full border border-white/15 px-3 py-1 text-xs text-white/60 hover:border-white/40"
+                      data-name="Strength 60/30 x5"
+                      data-work="60"
+                      data-rest="30"
+                      data-rounds="5"
+                    >
+                      Save
+                    </button>
+                  </div>
+                </div>
               </div>
 
               <div class="mt-6">
@@ -178,45 +231,83 @@
                 </label>
               </div>
 
-              <div class="mt-6 flex flex-wrap gap-3">
-                <button
-                  id="start-btn"
-                  class="rounded-full bg-mint px-6 py-3 text-sm font-semibold text-ink hover:bg-[#7ff5df]"
-                >
-                  Start Session
-                </button>
-                <button
-                  id="save-btn"
-                  class="rounded-full border border-white/15 px-6 py-3 text-sm font-semibold text-white/90 hover:border-white/40"
-                >
-                  Save Preset
-                </button>
-                <button
-                  id="reset-btn"
-                  class="rounded-full border border-white/15 px-6 py-3 text-sm text-white/70 hover:border-white/40"
-                >
-                  Reset
-                </button>
-                <button
-                  id="quick-restart"
-                  class="rounded-full border border-white/15 px-6 py-3 text-sm text-white/70 hover:border-white/40"
-                >
-                  Restart Last
-                </button>
-                <button
-                  id="clear-history"
-                  class="rounded-full border border-white/15 px-6 py-3 text-sm text-white/50 hover:border-white/40"
-                >
-                  Clear History
-                </button>
+              <div class="mt-4 flex flex-wrap items-center gap-3">
                 <label class="flex items-center gap-2 text-sm text-white/80">
-                  <input id="sound-toggle" type="checkbox" class="h-4 w-4 accent-mint" checked />
-                  Sound cues
+                  <input id="block2-toggle" type="checkbox" class="h-4 w-4 accent-white" />
+                  Add second block
                 </label>
-                <label class="flex items-center gap-2 text-sm text-white/80">
-                  <input id="vibrate-toggle" type="checkbox" class="h-4 w-4 accent-neon" />
-                  Vibration cues
+              </div>
+
+              <div id="block2-panel" class="mt-4 hidden grid gap-4 md:grid-cols-3">
+                <label class="block">
+                  <span class="text-xs text-slate">Block 2 Work (sec)</span>
+                  <input
+                    id="block2-work"
+                    type="number"
+                    min="5"
+                    step="5"
+                    class="mt-2 w-full rounded-2xl bg-white/10 px-4 py-3 text-lg text-white outline-none ring-1 ring-white/10 focus:ring-2 focus:ring-mint"
+                    value="30"
+                  />
                 </label>
+                <label class="block">
+                  <span class="text-xs text-slate">Block 2 Rest (sec)</span>
+                  <input
+                    id="block2-rest"
+                    type="number"
+                    min="5"
+                    step="5"
+                    class="mt-2 w-full rounded-2xl bg-white/10 px-4 py-3 text-lg text-white outline-none ring-1 ring-white/10 focus:ring-2 focus:ring-neon"
+                    value="15"
+                  />
+                </label>
+                <label class="block">
+                  <span class="text-xs text-slate">Block 2 Rounds</span>
+                  <input
+                    id="block2-rounds"
+                    type="number"
+                    min="1"
+                    step="1"
+                    class="mt-2 w-full rounded-2xl bg-white/10 px-4 py-3 text-lg text-white outline-none ring-1 ring-white/10 focus:ring-2 focus:ring-white"
+                    value="4"
+                  />
+                </label>
+              </div>
+
+              <div class="mt-4 grid gap-4 md:grid-cols-2">
+                <label class="block">
+                  <span class="text-xs text-slate">Warm-up (sec)</span>
+                  <input
+                    id="warmup-input"
+                    type="number"
+                    min="0"
+                    step="5"
+                    class="mt-2 w-full rounded-2xl bg-white/10 px-4 py-3 text-lg text-white outline-none ring-1 ring-white/10 focus:ring-2 focus:ring-white"
+                    value="0"
+                  />
+                </label>
+                <label class="block">
+                  <span class="text-xs text-slate">Cool-down (sec)</span>
+                  <input
+                    id="cooldown-input"
+                    type="number"
+                    min="0"
+                    step="5"
+                    class="mt-2 w-full rounded-2xl bg-white/10 px-4 py-3 text-lg text-white outline-none ring-1 ring-white/10 focus:ring-2 focus:ring-white"
+                    value="0"
+                  />
+                </label>
+              </div>
+
+            <div class="mt-6 hidden flex-wrap gap-3" id="settings-panel">
+              <label class="flex items-center gap-2 text-sm text-white/80">
+                <input id="sound-toggle" type="checkbox" class="h-4 w-4 accent-mint" checked />
+                Sound cues
+              </label>
+              <label class="flex items-center gap-2 text-sm text-white/80">
+                <input id="vibrate-toggle" type="checkbox" class="h-4 w-4 accent-neon" />
+                Vibration cues
+              </label>
               <label class="flex items-center gap-2 text-sm text-white/80">
                 <input id="start-sound" type="checkbox" class="h-4 w-4 accent-mint" checked />
                 Start sound
@@ -229,30 +320,116 @@
                 <input id="auto-workout" type="checkbox" class="h-4 w-4 accent-white" checked />
                 Auto workout mode
               </label>
+              <label class="flex items-center gap-2 text-sm text-white/80">
+                <input id="countdown-toggle" type="checkbox" class="h-4 w-4 accent-white" checked />
+                Countdown
+              </label>
+              <label class="flex items-center gap-2 text-sm text-white/80">
+                <input id="voice-toggle" type="checkbox" class="h-4 w-4 accent-white" />
+                Voice cues
+              </label>
+              <div class="flex items-center gap-3 text-sm text-white/80">
+                <span>Cue volume</span>
+                <input
+                  id="cue-volume"
+                  type="range"
+                  min="0"
+                  max="100"
+                  value="70"
+                  class="accent-mint"
+                />
+                <span id="cue-volume-value" class="text-xs text-slate">70%</span>
+              </div>
+              <button
+                id="test-cue"
+                class="rounded-full border border-white/15 px-4 py-2 text-xs text-white/70 hover:border-white/40"
+              >
+                Test cue
+              </button>
+            </div>
+            <div class="mt-6 flex flex-wrap gap-3" data-workout-hide>
+              <button
+                id="start-btn"
+                class="rounded-full bg-mint px-6 py-3 text-sm font-semibold text-ink hover:bg-[#7ff5df]"
+              >
+                Start Session
+              </button>
+              <button
+                id="save-btn"
+                class="rounded-full border border-white/15 px-6 py-3 text-sm font-semibold text-white/90 hover:border-white/40"
+              >
+                Save Preset
+              </button>
+              <button
+                id="reset-btn"
+                class="rounded-full border border-white/15 px-6 py-3 text-sm text-white/70 hover:border-white/40"
+              >
+                Reset
+              </button>
+              <button
+                id="quick-restart"
+                class="rounded-full border border-white/15 px-6 py-3 text-sm text-white/70 hover:border-white/40"
+              >
+                Restart Last
+              </button>
+              <button
+                id="share-session"
+                class="rounded-full border border-white/15 px-6 py-3 text-sm text-white/70 hover:border-white/40"
+              >
+                Share
+              </button>
+              <button
+                id="clear-history"
+                class="rounded-full border border-white/15 px-6 py-3 text-sm text-white/50 hover:border-white/40"
+              >
+                Clear History
+              </button>
+              <button
+                id="reset-all"
+                class="rounded-full border border-white/15 px-6 py-3 text-sm text-white/50 hover:border-white/40"
+              >
+                Reset All
+              </button>
             </div>
 
-              <div class="mt-8 rounded-2xl border border-white/10 bg-black/30 p-6">
+            <div class="mt-6 flex flex-wrap gap-3" data-workout-hide>
+              <button
+                id="settings-toggle"
+                class="rounded-full border border-white/15 px-6 py-3 text-sm text-white/70 hover:border-white/40"
+              >
+                Settings
+              </button>
+            </div>
+
+              <div class="mt-8 rounded-2xl border border-white/10 bg-black/30 p-6" data-workout-hide>
                 <p class="text-xs uppercase tracking-[0.25em] text-slate">Preview</p>
                 <div class="mt-4 text-5xl font-display" id="preview">
                   40s Work · 20s Rest · 6 Rounds
                 </div>
+                <p class="mt-3 text-sm text-slate">Sequence: <span id="sequence-preview">Work / Rest x6</span></p>
                 <p class="mt-3 text-sm text-slate">Session length: <span id="session-length">6:00</span></p>
               </div>
             </div>
 
-            <div id="run-panel" class="mt-6 rounded-2xl border border-white/10 bg-black/50 p-6">
+              <div id="run-panel" class="mt-6 rounded-2xl border border-white/10 bg-black/50 p-6 lg:sticky lg:top-6">
               <div class="flex items-center justify-between">
                 <p class="text-xs uppercase tracking-[0.25em] text-slate">Run</p>
                 <span id="phase-pill" class="rounded-full bg-white/10 px-3 py-1 text-xs text-slate">
                   Ready
                 </span>
               </div>
+              <div class="mt-2 text-xs text-slate">
+                Target: <span id="target-duration">0:00</span>
+              </div>
               <div class="mt-2 text-sm text-slate">
                 Now: <span id="current-name">Custom interval</span>
               </div>
               <div class="mt-4 flex items-baseline gap-3">
-                <div id="timer-display" class="text-6xl font-display">00:00</div>
+                <div id="timer-display" class="text-6xl font-display cursor-pointer transition-opacity select-none">00:00</div>
                 <div class="text-sm text-slate" id="round-display">Round 0 / 0</div>
+              </div>
+              <div class="mt-1 text-xs text-slate/70">
+                Tap the timer to pause/resume.
               </div>
               <div class="mt-2 text-sm text-slate">
                 Total remaining: <span id="total-remaining">0:00</span>
@@ -281,25 +458,25 @@
                 </button>
                 <button
                   id="next-btn"
-                  class="rounded-full border border-white/15 px-5 py-2 text-sm font-semibold text-white/90 hover:border-white/40"
+                  class="hidden rounded-full border border-white/15 px-5 py-2 text-sm font-semibold text-white/90 hover:border-white/40"
                 >
                   Next
                 </button>
                 <button
                   id="pause-btn"
-                  class="rounded-full border border-white/15 px-5 py-2 text-sm font-semibold text-white/90 hover:border-white/40"
+                  class="hidden rounded-full border border-white/15 px-5 py-2 text-sm font-semibold text-white/90 hover:border-white/40"
                 >
                   Pause
                 </button>
                 <button
                   id="stop-btn"
-                  class="rounded-full border border-white/15 px-5 py-2 text-sm text-white/70 hover:border-white/40"
+                  class="hidden rounded-full border border-white/15 px-5 py-2 text-sm text-white/70 hover:border-white/40"
                 >
                   Stop
                 </button>
                 <button
                   id="end-btn"
-                  class="rounded-full border border-white/15 px-5 py-2 text-sm text-white/70 hover:border-white/40"
+                  class="hidden rounded-full border border-white/15 px-5 py-2 text-sm text-white/70 hover:border-white/40"
                 >
                   End Session
                 </button>
@@ -313,12 +490,27 @@
             </div>
           </div>
 
-          <div class="flex flex-col gap-6" data-workout-hide>
-            <div class="rounded-3xl border border-white/10 bg-white/5 p-6">
+          <div class="flex w-full flex-col gap-6 lg:max-w-md xl:max-w-lg" data-workout-hide>
+            <div class="rounded-3xl border border-white/10 bg-white/5 p-6" id="history-panel">
               <h3 class="font-display text-2xl">Saved Presets</h3>
               <p class="mt-2 text-sm text-slate">
                 Stored locally on this device.
               </p>
+              <div class="mt-4 flex flex-wrap gap-3">
+                <button
+                  id="export-presets"
+                  class="rounded-full border border-white/15 px-4 py-2 text-sm text-white/70 hover:border-white/40"
+                >
+                  Export
+                </button>
+                <button
+                  id="import-presets"
+                  class="rounded-full border border-white/15 px-4 py-2 text-sm text-white/70 hover:border-white/40"
+                >
+                  Import
+                </button>
+                <input id="import-file" type="file" accept="application/json" class="hidden" />
+              </div>
               <div id="preset-list" class="mt-4 flex flex-col gap-3"></div>
             </div>
 
@@ -331,6 +523,14 @@
                 Total sessions: <span id="history-count">0</span> · Total time: <span id="history-total">0:00</span>
               </div>
               <div id="history-list" class="mt-4 flex flex-col gap-3"></div>
+              <div class="mt-4 flex flex-wrap gap-3">
+                <button
+                  id="toggle-history"
+                  class="rounded-full border border-white/15 px-4 py-2 text-sm text-white/70 hover:border-white/40"
+                >
+                  Hide history
+                </button>
+              </div>
             </div>
 
             <div class="rounded-3xl border border-white/10 bg-white/5 p-6">
