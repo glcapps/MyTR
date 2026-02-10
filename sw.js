@@ -1,4 +1,4 @@
-const CACHE_NAME = "mytr-timer-v1";
+const CACHE_NAME = "mytr-timer-v2";
 const OFFLINE_ASSETS = [
   "./",
   "./index.html",

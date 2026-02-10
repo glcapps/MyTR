@@ -51,6 +51,14 @@
       body.workout-mode #round-display {
         font-size: 1.1rem;
       }
+      #run-panel.phase-work {
+        box-shadow: 0 0 60px rgba(94, 234, 212, 0.25);
+        border-color: rgba(94, 234, 212, 0.35);
+      }
+      #run-panel.phase-rest {
+        box-shadow: 0 0 60px rgba(34, 211, 238, 0.25);
+        border-color: rgba(34, 211, 238, 0.35);
+      }
     </style>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -209,11 +217,19 @@
                   <input id="vibrate-toggle" type="checkbox" class="h-4 w-4 accent-neon" />
                   Vibration cues
                 </label>
-                <label class="flex items-center gap-2 text-sm text-white/80">
-                  <input id="start-sound" type="checkbox" class="h-4 w-4 accent-mint" checked />
-                  Start sound
-                </label>
-              </div>
+              <label class="flex items-center gap-2 text-sm text-white/80">
+                <input id="start-sound" type="checkbox" class="h-4 w-4 accent-mint" checked />
+                Start sound
+              </label>
+              <label class="flex items-center gap-2 text-sm text-white/80">
+                <input id="keep-awake" type="checkbox" class="h-4 w-4 accent-white" checked />
+                Keep screen awake
+              </label>
+              <label class="flex items-center gap-2 text-sm text-white/80">
+                <input id="auto-workout" type="checkbox" class="h-4 w-4 accent-white" checked />
+                Auto workout mode
+              </label>
+            </div>
 
               <div class="mt-8 rounded-2xl border border-white/10 bg-black/30 p-6">
                 <p class="text-xs uppercase tracking-[0.25em] text-slate">Preview</p>
@@ -241,6 +257,18 @@
               <div class="mt-2 text-sm text-slate">
                 Total remaining: <span id="total-remaining">0:00</span>
               </div>
+              <div class="mt-2 text-sm text-slate">
+                Elapsed: <span id="elapsed-time">0:00</span>
+              </div>
+              <div class="mt-2 text-sm text-slate">
+                Next: <span id="next-phase">Work</span>
+              </div>
+              <div
+                id="complete-banner"
+                class="mt-3 hidden rounded-2xl border border-white/15 bg-white/10 px-4 py-3 text-sm text-white"
+              >
+                Session complete.
+              </div>
               <div class="mt-4 h-2 w-full rounded-full bg-white/10">
                 <div id="progress-bar" class="h-2 w-0 rounded-full bg-mint transition-all"></div>
               </div>
@@ -250,6 +278,12 @@
                   class="rounded-full border border-white/15 px-5 py-2 text-sm font-semibold text-white/90 hover:border-white/40"
                 >
                   Workout Mode
+                </button>
+                <button
+                  id="next-btn"
+                  class="rounded-full border border-white/15 px-5 py-2 text-sm font-semibold text-white/90 hover:border-white/40"
+                >
+                  Next
                 </button>
                 <button
                   id="pause-btn"
@@ -262,6 +296,12 @@
                   class="rounded-full border border-white/15 px-5 py-2 text-sm text-white/70 hover:border-white/40"
                 >
                   Stop
+                </button>
+                <button
+                  id="end-btn"
+                  class="rounded-full border border-white/15 px-5 py-2 text-sm text-white/70 hover:border-white/40"
+                >
+                  End Session
                 </button>
                 <button
                   id="exit-workout-btn"
@@ -287,6 +327,9 @@
               <p class="mt-2 text-sm text-slate">
                 Completed runs are stored locally.
               </p>
+              <div class="mt-3 text-sm text-slate">
+                Total sessions: <span id="history-count">0</span> · Total time: <span id="history-total">0:00</span>
+              </div>
               <div id="history-list" class="mt-4 flex flex-col gap-3"></div>
             </div>
 

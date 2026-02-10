@@ -9,6 +9,8 @@ const saveBtn = document.getElementById("save-btn");
 const resetBtn = document.getElementById("reset-btn");
 const installBtn = document.getElementById("install-btn");
 const historyList = document.getElementById("history-list");
+const historyCountEl = document.getElementById("history-count");
+const historyTotalEl = document.getElementById("history-total");
 const startBtn = document.getElementById("start-btn");
 const quickRestartBtn = document.getElementById("quick-restart");
 const clearHistoryBtn = document.getElementById("clear-history");
@@ -17,16 +19,23 @@ const timerDisplay = document.getElementById("timer-display");
 const roundDisplay = document.getElementById("round-display");
 const totalRemainingEl = document.getElementById("total-remaining");
 const currentNameEl = document.getElementById("current-name");
+const nextPhaseEl = document.getElementById("next-phase");
+const elapsedTimeEl = document.getElementById("elapsed-time");
+const completeBanner = document.getElementById("complete-banner");
 const phasePill = document.getElementById("phase-pill");
 const progressBar = document.getElementById("progress-bar");
 const pauseBtn = document.getElementById("pause-btn");
 const stopBtn = document.getElementById("stop-btn");
+const nextBtn = document.getElementById("next-btn");
+const endBtn = document.getElementById("end-btn");
 const soundToggle = document.getElementById("sound-toggle");
 const workoutBtn = document.getElementById("workout-btn");
 const exitWorkoutBtn = document.getElementById("exit-workout-btn");
 const vibrateToggle = document.getElementById("vibrate-toggle");
 const templateButtons = document.querySelectorAll(".template-btn");
 const startSoundToggle = document.getElementById("start-sound");
+const keepAwakeToggle = document.getElementById("keep-awake");
+const autoWorkoutToggle = document.getElementById("auto-workout");
 
 let deferredInstallPrompt = null;
 
@@ -34,6 +43,7 @@ const STORAGE_KEY = "mytr-presets-v1";
 const HISTORY_KEY = "mytr-history-v1";
 const LAST_SESSION_KEY = "mytr-last-session-v1";
 const SETTINGS_KEY = "mytr-settings-v1";
+const LAST_CONFIG_KEY = "mytr-last-config-v1";
 const timerState = {
   running: false,
   paused: false,
@@ -45,6 +55,7 @@ const timerState = {
   lastTick: 0,
   audioCtx: null,
   wakeLock: null,
+  beepsFired: new Set(),
 };
 
 const state = {
@@ -109,6 +120,20 @@ const loadLastSession = () => {
 const saveLastSession = (payload) => {
   localStorage.setItem(LAST_SESSION_KEY, JSON.stringify(payload));
 };
+
+const loadLastConfig = () => {
+  try {
+    const raw = localStorage.getItem(LAST_CONFIG_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch (err) {
+    console.warn("Config load failed", err);
+    return null;
+  }
+};
+
+const saveLastConfig = (payload) => {
+  localStorage.setItem(LAST_CONFIG_KEY, JSON.stringify(payload));
+};
 const formatDuration = (seconds) => {
   const mins = Math.floor(seconds / 60);
   const secs = seconds % 60;
@@ -135,9 +160,16 @@ const getTotalRemaining = () => {
   return 0;
 };
 
+const getTotalDuration = () => {
+  return 3 + (state.work + state.rest) * state.rounds;
+};
+
 const renderHistory = () => {
   const history = loadHistory();
   historyList.innerHTML = "";
+  const totalSeconds = history.reduce((sum, entry) => sum + (entry.totalSeconds || 0), 0);
+  historyCountEl.textContent = history.length;
+  historyTotalEl.textContent = formatDuration(totalSeconds);
   if (!history.length) {
     historyList.innerHTML =
       '<div class="rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-slate">No sessions yet.</div>';
@@ -214,6 +246,18 @@ const applyPhaseStyles = () => {
       : "bg-neon text-ink");
   progressBar.className =
     "h-2 rounded-full transition-all " + (isWork ? "bg-mint" : "bg-neon");
+  document.getElementById("run-panel").classList.toggle("phase-work", phase === "work");
+  document.getElementById("run-panel").classList.toggle("phase-rest", phase === "rest");
+
+  if (phase === "ready" || phase === "countdown") {
+    nextPhaseEl.textContent = "Work";
+  } else if (phase === "work") {
+    nextPhaseEl.textContent = "Rest";
+  } else if (phase === "rest") {
+    nextPhaseEl.textContent = timerState.round >= state.rounds ? "Done" : "Work";
+  } else {
+    nextPhaseEl.textContent = "Done";
+  }
 };
 
 const updateTimerDisplay = () => {
@@ -223,6 +267,8 @@ const updateTimerDisplay = () => {
   const progress = timerState.duration ? ((timerState.duration - remaining) / timerState.duration) * 100 : 0;
   progressBar.style.width = `${Math.min(100, Math.max(0, progress))}%`;
   totalRemainingEl.textContent = formatDuration(getTotalRemaining());
+  const elapsed = Math.max(0, getTotalDuration() - getTotalRemaining());
+  elapsedTimeEl.textContent = formatDuration(elapsed);
 };
 
 const setControlsEnabled = (enabled) => {
@@ -248,7 +294,7 @@ const setWorkoutMode = async (enabled) => {
     }
   }
 
-  if (enabled && "wakeLock" in navigator) {
+  if (enabled && "wakeLock" in navigator && keepAwakeToggle.checked) {
     try {
       timerState.wakeLock = await navigator.wakeLock.request("screen");
     } catch (err) {
@@ -272,6 +318,8 @@ const stopTimer = () => {
   timerState.round = 0;
   timerState.remaining = 0;
   timerState.duration = 0;
+  timerState.beepsFired.clear();
+  completeBanner.classList.add("hidden");
   if (timerState.intervalId) {
     clearInterval(timerState.intervalId);
     timerState.intervalId = null;
@@ -279,6 +327,9 @@ const stopTimer = () => {
   if (timerState.wakeLock) {
     timerState.wakeLock.release().catch(() => null);
     timerState.wakeLock = null;
+  }
+  if (navigator.clearAppBadge) {
+    navigator.clearAppBadge().catch(() => null);
   }
   pauseBtn.textContent = "Pause";
   setControlsEnabled(true);
@@ -353,6 +404,9 @@ const tick = () => {
   if (delta <= 0) return;
   timerState.lastTick = now;
   timerState.remaining = Math.max(0, timerState.remaining - delta);
+  if (navigator.setAppBadge) {
+    navigator.setAppBadge(timerState.remaining).catch(() => null);
+  }
   const phaseLabel =
     timerState.phase === "work"
       ? "WORK"
@@ -363,8 +417,13 @@ const tick = () => {
       : "READY";
   document.title = `${formatDuration(timerState.remaining)} · ${phaseLabel} · MyTR Timer`;
   if (timerState.remaining > 0 && timerState.remaining <= 3 && timerState.phase !== "ready") {
-    playBeep(1040, 0.08);
-    vibrate([40]);
+    if (!timerState.beepsFired.has(timerState.remaining)) {
+      timerState.beepsFired.add(timerState.remaining);
+      playBeep(1040, 0.08);
+      vibrate([40]);
+    }
+  } else if (timerState.remaining > 3) {
+    timerState.beepsFired.clear();
   }
   if (timerState.remaining === 0) {
     if (timerState.phase === "countdown") {
@@ -376,6 +435,10 @@ const tick = () => {
       stopTimer();
       phasePill.textContent = "Complete";
       phasePill.className = "rounded-full bg-white/20 px-3 py-1 text-xs text-white";
+      completeBanner.textContent = `Session complete · ${formatDuration(
+        (state.work + state.rest) * state.rounds
+      )}`;
+      completeBanner.classList.remove("hidden");
       return;
     }
   }
@@ -395,6 +458,10 @@ const startTimer = () => {
     if (startSoundToggle.checked) {
       playBeep(660, 0.12);
     }
+    if (autoWorkoutToggle.checked) {
+      setWorkoutMode(true);
+    }
+    completeBanner.classList.add("hidden");
   }
   ensureAudio();
   timerState.paused = false;
@@ -479,11 +546,23 @@ const handleInput = (key, value) => {
   if (!timerState.running) {
     updateTimerDisplay();
   }
+  saveLastConfig({
+    name: state.name,
+    work: state.work,
+    rest: state.rest,
+    rounds: state.rounds,
+  });
 };
 
 nameInput.addEventListener("input", (event) => {
   state.name = event.target.value.trim() || "Custom interval";
   updatePreview();
+  saveLastConfig({
+    name: state.name,
+    work: state.work,
+    rest: state.rest,
+    rounds: state.rounds,
+  });
 });
 
 templateButtons.forEach((button) => {
@@ -503,6 +582,12 @@ templateButtons.forEach((button) => {
     state.rounds = rounds;
     updatePreview();
     updateTimerDisplay();
+    saveLastConfig({
+      name: state.name,
+      work: state.work,
+      rest: state.rest,
+      rounds: state.rounds,
+    });
   });
 });
 
@@ -559,6 +644,17 @@ pauseBtn.addEventListener("click", () => {
 });
 
 stopBtn.addEventListener("click", stopTimer);
+nextBtn.addEventListener("click", () => {
+  if (!timerState.running) return;
+  timerState.remaining = 0;
+  advancePhase();
+  applyPhaseStyles();
+  updateTimerDisplay();
+});
+endBtn.addEventListener("click", () => {
+  if (!timerState.running) return;
+  stopTimer();
+});
 
 workoutBtn.addEventListener("click", () => setWorkoutMode(true));
 exitWorkoutBtn.addEventListener("click", () => {
@@ -586,6 +682,12 @@ resetBtn.addEventListener("click", () => {
   state.rest = 20;
   state.rounds = 6;
   updatePreview();
+  saveLastConfig({
+    name: state.name,
+    work: state.work,
+    rest: state.rest,
+    rounds: state.rounds,
+  });
 });
 
 window.addEventListener("beforeinstallprompt", (event) => {
@@ -612,26 +714,51 @@ const updateCacheStatus = async () => {
   cacheStatus.textContent = cacheNames.length ? "ready for offline use" : "preparing...";
 };
 
-nameInput.value = state.name;
+const lastConfig = loadLastConfig();
+if (lastConfig) {
+  nameInput.value = lastConfig.name || "Custom interval";
+  workInput.value = lastConfig.work ?? 40;
+  restInput.value = lastConfig.rest ?? 20;
+  roundsInput.value = lastConfig.rounds ?? 6;
+  state.name = nameInput.value;
+  state.work = Number(workInput.value) || 40;
+  state.rest = Number(restInput.value) || 20;
+  state.rounds = Number(roundsInput.value) || 6;
+} else {
+  nameInput.value = state.name;
+}
 updatePreview();
 renderPresets();
 updateCacheStatus();
 stopTimer();
 renderHistory();
 
+const refreshCacheStatus = () => {
+  updateCacheStatus().catch(() => null);
+};
+
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.addEventListener("controllerchange", refreshCacheStatus);
+  navigator.serviceWorker.addEventListener("message", refreshCacheStatus);
+}
+
 const settings = loadSettings();
 if (settings) {
   soundToggle.checked = settings.sound ?? soundToggle.checked;
   vibrateToggle.checked = settings.vibrate ?? vibrateToggle.checked;
   startSoundToggle.checked = settings.startSound ?? startSoundToggle.checked;
+  keepAwakeToggle.checked = settings.keepAwake ?? keepAwakeToggle.checked;
+  autoWorkoutToggle.checked = settings.autoWorkout ?? autoWorkoutToggle.checked;
 }
 
-[soundToggle, vibrateToggle, startSoundToggle].forEach((toggle) => {
+[soundToggle, vibrateToggle, startSoundToggle, keepAwakeToggle, autoWorkoutToggle].forEach((toggle) => {
   toggle.addEventListener("change", () => {
     saveSettings({
       sound: soundToggle.checked,
       vibrate: vibrateToggle.checked,
       startSound: startSoundToggle.checked,
+      keepAwake: keepAwakeToggle.checked,
+      autoWorkout: autoWorkoutToggle.checked,
     });
   });
 });
