@@ -1,17 +1,20 @@
 const workInput = document.getElementById("work-input");
 const restInput = document.getElementById("rest-input");
 const roundsInput = document.getElementById("rounds-input");
+const block1LabelsInput = document.getElementById("block1-labels");
 const block2Toggle = document.getElementById("block2-toggle");
 const block2Panel = document.getElementById("block2-panel");
 const block2WorkInput = document.getElementById("block2-work");
 const block2RestInput = document.getElementById("block2-rest");
 const block2RoundsInput = document.getElementById("block2-rounds");
+const block2LabelsInput = document.getElementById("block2-labels");
 const warmupInput = document.getElementById("warmup-input");
 const cooldownInput = document.getElementById("cooldown-input");
 const preview = document.getElementById("preview");
 const sessionLength = document.getElementById("session-length");
 const sequencePreview = document.getElementById("sequence-preview");
 const presetList = document.getElementById("preset-list");
+const presetsPanel = document.getElementById("presets-panel");
 const cacheStatus = document.getElementById("cache-status");
 const saveBtn = document.getElementById("save-btn");
 const resetBtn = document.getElementById("reset-btn");
@@ -30,6 +33,7 @@ const exportPresetsBtn = document.getElementById("export-presets");
 const importPresetsBtn = document.getElementById("import-presets");
 const importFileInput = document.getElementById("import-file");
 const resetAllBtn = document.getElementById("reset-all");
+const exportIcsBtn = document.getElementById("export-ics");
 const timerDisplay = document.getElementById("timer-display");
 const roundDisplay = document.getElementById("round-display");
 const totalRemainingEl = document.getElementById("total-remaining");
@@ -38,6 +42,7 @@ const nextPhaseEl = document.getElementById("next-phase");
 const elapsedTimeEl = document.getElementById("elapsed-time");
 const completeBanner = document.getElementById("complete-banner");
 const targetDurationEl = document.getElementById("target-duration");
+const roundLabelEl = document.getElementById("round-label");
 const phasePill = document.getElementById("phase-pill");
 const progressBar = document.getElementById("progress-bar");
 const pauseBtn = document.getElementById("pause-btn");
@@ -46,6 +51,8 @@ const nextBtn = document.getElementById("next-btn");
 const endBtn = document.getElementById("end-btn");
 const settingsPanel = document.getElementById("settings-panel");
 const settingsToggle = document.getElementById("settings-toggle");
+const jumpWorkBtn = document.getElementById("jump-work");
+const jumpRestBtn = document.getElementById("jump-rest");
 const soundToggle = document.getElementById("sound-toggle");
 const workoutBtn = document.getElementById("workout-btn");
 const exitWorkoutBtn = document.getElementById("exit-workout-btn");
@@ -95,6 +102,8 @@ const state = {
   block2Work: Number(block2WorkInput.value) || 30,
   block2Rest: Number(block2RestInput.value) || 15,
   block2Rounds: Number(block2RoundsInput.value) || 4,
+  block1Labels: "",
+  block2Labels: "",
 };
 
 const loadPresets = () => {
@@ -189,6 +198,20 @@ const formatDuration = (seconds) => {
 const formatTimestamp = (stamp) => {
   const date = new Date(stamp);
   return date.toLocaleString(undefined, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+};
+
+const parseLabels = (labelString) => {
+  if (!labelString) return [];
+  return labelString
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
+};
+
+const getRoundLabel = (blockIndex, round) => {
+  const labels = blockIndex === 0 ? parseLabels(state.block1Labels) : parseLabels(state.block2Labels);
+  if (!round || round < 1) return "";
+  return labels[round - 1] || "";
 };
 
 const getBlocks = () => {
@@ -408,6 +431,12 @@ const updateTimerDisplay = () => {
   totalRemainingEl.textContent = formatDuration(getTotalRemaining());
   const elapsed = Math.max(0, getTotalDuration() - getTotalRemaining());
   elapsedTimeEl.textContent = formatDuration(elapsed);
+  if (timerState.phase === "work" || timerState.phase === "rest") {
+    const label = getRoundLabel(timerState.blockIndex, timerState.round);
+    roundLabelEl.textContent = label || "—";
+  } else {
+    roundLabelEl.textContent = "—";
+  }
 };
 
 const setControlsEnabled = (enabled) => {
@@ -594,6 +623,8 @@ const advancePhase = () => {
           block2Work: state.block2Work,
           block2Rest: state.block2Rest,
           block2Rounds: state.block2Rounds,
+          block1Labels: state.block1Labels,
+          block2Labels: state.block2Labels,
         });
         const history = loadHistory();
         history.unshift({
@@ -607,6 +638,8 @@ const advancePhase = () => {
           block2Work: state.block2Work,
           block2Rest: state.block2Rest,
           block2Rounds: state.block2Rounds,
+          block1Labels: state.block1Labels,
+          block2Labels: state.block2Labels,
           totalSeconds: getTotalDuration() - (countdownToggle.checked ? 3 : 0),
           completedAt: Date.now(),
         });
@@ -640,6 +673,8 @@ const advancePhase = () => {
       block2Work: state.block2Work,
       block2Rest: state.block2Rest,
       block2Rounds: state.block2Rounds,
+      block1Labels: state.block1Labels,
+      block2Labels: state.block2Labels,
     });
     const history = loadHistory();
     history.unshift({
@@ -653,6 +688,8 @@ const advancePhase = () => {
       block2Work: state.block2Work,
       block2Rest: state.block2Rest,
       block2Rounds: state.block2Rounds,
+      block1Labels: state.block1Labels,
+      block2Labels: state.block2Labels,
       totalSeconds: getTotalDuration() - (countdownToggle.checked ? 3 : 0),
       completedAt: Date.now(),
     });
@@ -816,6 +853,8 @@ const renderPresets = () => {
     block2WorkInput.value = preset.block2Work ?? 30;
     block2RestInput.value = preset.block2Rest ?? 15;
     block2RoundsInput.value = preset.block2Rounds ?? 4;
+    block1LabelsInput.value = preset.block1Labels ?? "";
+    block2LabelsInput.value = preset.block2Labels ?? "";
     state.name = preset.name || "Custom interval";
     state.work = preset.work;
     state.rest = preset.rest;
@@ -826,12 +865,14 @@ const renderPresets = () => {
     state.block2Work = preset.block2Work ?? 30;
     state.block2Rest = preset.block2Rest ?? 15;
     state.block2Rounds = preset.block2Rounds ?? 4;
+    state.block1Labels = preset.block1Labels ?? "";
+    state.block2Labels = preset.block2Labels ?? "";
     updatePreview();
     if (autoStart) startTimer();
   };
 
   presets.forEach((preset, index) => {
-    const card = document.createElement("button");
+    const card = document.createElement("div");
     card.className =
       "group rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-left hover:border-white/40";
     const block2Line = preset.block2Enabled
@@ -848,16 +889,53 @@ const renderPresets = () => {
           <button class="preset-start rounded-full border border-white/15 px-3 py-1 text-xs text-white/80 hover:border-white/40" type="button">
             Start
           </button>
+          <button class="preset-duplicate rounded-full border border-white/15 px-3 py-1 text-xs text-white/70 hover:border-white/40" type="button">
+            Duplicate
+          </button>
+          <button class="preset-favorite rounded-full border border-white/15 px-3 py-1 text-xs text-white/70 hover:border-white/40" type="button">
+            ${preset.favorite ? "★" : "☆"} Favorite
+          </button>
+          <button class="preset-rename rounded-full border border-white/15 px-3 py-1 text-xs text-white/70 hover:border-white/40" type="button">
+            Rename
+          </button>
           <button class="preset-delete rounded-full border border-white/15 px-3 py-1 text-xs text-white/50 hover:border-white/40" type="button">
             Delete
           </button>
         </div>
       </div>
     `;
-    card.addEventListener("click", () => loadPreset(preset, false));
     card.querySelector(".preset-start").addEventListener("click", (event) => {
       event.stopPropagation();
       loadPreset(preset, true);
+    });
+    card.querySelector(".preset-duplicate").addEventListener("click", (event) => {
+      event.stopPropagation();
+      const presets = loadPresets();
+      const clone = {
+        ...preset,
+        name: `${preset.name || "Preset"} (Copy)`,
+        favorite: false,
+        savedAt: Date.now(),
+      };
+      presets.unshift(clone);
+      savePresets(presets.slice(0, 12));
+      renderPresets();
+    });
+    card.querySelector(".preset-rename").addEventListener("click", (event) => {
+      event.stopPropagation();
+      const name = window.prompt("Preset name:", preset.name || `Preset ${index + 1}`);
+      if (!name) return;
+      const presets = loadPresets();
+      presets[index] = { ...preset, name: name.trim() };
+      savePresets(presets);
+      renderPresets();
+    });
+    card.querySelector(".preset-favorite").addEventListener("click", (event) => {
+      event.stopPropagation();
+      const presets = loadPresets();
+      presets[index] = { ...preset, favorite: !preset.favorite };
+      savePresets(presets);
+      renderPresets();
     });
     card.querySelector(".preset-delete").addEventListener("click", (event) => {
       event.stopPropagation();
@@ -865,6 +943,7 @@ const renderPresets = () => {
       savePresets(updated);
       renderPresets();
     });
+    card.addEventListener("click", () => loadPreset(preset, false));
     presetList.appendChild(card);
   });
 };
@@ -886,6 +965,29 @@ const handleInput = (key, value) => {
     block2Work: state.block2Work,
     block2Rest: state.block2Rest,
     block2Rounds: state.block2Rounds,
+    block1Labels: state.block1Labels,
+    block2Labels: state.block2Labels,
+  });
+};
+
+const handleLabelInput = () => {
+  state.block1Labels = block1LabelsInput.value;
+  state.block2Labels = block2LabelsInput.value;
+  updatePreview();
+  updateTimerDisplay();
+  saveLastConfig({
+    name: state.name,
+    work: state.work,
+    rest: state.rest,
+    rounds: state.rounds,
+    warmup: state.warmup,
+    cooldown: state.cooldown,
+    block2Enabled: state.block2Enabled,
+    block2Work: state.block2Work,
+    block2Rest: state.block2Rest,
+    block2Rounds: state.block2Rounds,
+    block1Labels: state.block1Labels,
+    block2Labels: state.block2Labels,
   });
 };
 
@@ -914,6 +1016,8 @@ const clampConfig = () => {
   state.block2Work = block2Work;
   state.block2Rest = block2Rest;
   state.block2Rounds = block2Rounds;
+  state.block1Labels = block1LabelsInput.value;
+  state.block2Labels = block2LabelsInput.value;
   updatePreview();
   updateTimerDisplay();
 };
@@ -976,11 +1080,47 @@ templateUseButtons.forEach((button) => {
   button.addEventListener("click", () => applyTemplate(button));
 });
 
-templateSaveButtons.forEach((button) => {
-  button.addEventListener("click", () => {
-    applyTemplate(button);
-    const presets = loadPresets();
-    presets.unshift({
+  templateSaveButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      applyTemplate(button);
+      const presets = loadPresets();
+      presets.unshift({
+        name: state.name,
+        work: state.work,
+        rest: state.rest,
+        rounds: state.rounds,
+        warmup: state.warmup,
+        cooldown: state.cooldown,
+        block2Enabled: state.block2Enabled,
+        block2Work: state.block2Work,
+        block2Rest: state.block2Rest,
+        block2Rounds: state.block2Rounds,
+        favorite: false,
+        savedAt: Date.now(),
+      });
+      savePresets(presets.slice(0, 12));
+      renderPresets();
+    });
+  });
+
+workInput.addEventListener("input", (event) => handleInput("work", event.target.value));
+restInput.addEventListener("input", (event) => handleInput("rest", event.target.value));
+roundsInput.addEventListener("input", (event) => handleInput("rounds", event.target.value));
+warmupInput.addEventListener("input", (event) => handleInput("warmup", event.target.value));
+cooldownInput.addEventListener("input", (event) => handleInput("cooldown", event.target.value));
+block2WorkInput.addEventListener("input", (event) => handleInput("block2Work", event.target.value));
+block2RestInput.addEventListener("input", (event) => handleInput("block2Rest", event.target.value));
+block2RoundsInput.addEventListener("input", (event) => handleInput("block2Rounds", event.target.value));
+block1LabelsInput.addEventListener("input", handleLabelInput);
+block2LabelsInput.addEventListener("input", handleLabelInput);
+
+  block2Toggle.addEventListener("change", (event) => {
+    const enabled = event.target.checked;
+    state.block2Enabled = enabled;
+    block2Panel.classList.toggle("hidden", !enabled);
+    updatePreview();
+    updateTimerDisplay();
+    saveLastConfig({
       name: state.name,
       work: state.work,
       rest: state.rest,
@@ -991,41 +1131,10 @@ templateSaveButtons.forEach((button) => {
       block2Work: state.block2Work,
       block2Rest: state.block2Rest,
       block2Rounds: state.block2Rounds,
-      savedAt: Date.now(),
+      block1Labels: state.block1Labels,
+      block2Labels: state.block2Labels,
     });
-    savePresets(presets.slice(0, 12));
-    renderPresets();
   });
-});
-
-workInput.addEventListener("input", (event) => handleInput("work", event.target.value));
-restInput.addEventListener("input", (event) => handleInput("rest", event.target.value));
-roundsInput.addEventListener("input", (event) => handleInput("rounds", event.target.value));
-warmupInput.addEventListener("input", (event) => handleInput("warmup", event.target.value));
-cooldownInput.addEventListener("input", (event) => handleInput("cooldown", event.target.value));
-block2WorkInput.addEventListener("input", (event) => handleInput("block2Work", event.target.value));
-block2RestInput.addEventListener("input", (event) => handleInput("block2Rest", event.target.value));
-block2RoundsInput.addEventListener("input", (event) => handleInput("block2Rounds", event.target.value));
-
-block2Toggle.addEventListener("change", (event) => {
-  const enabled = event.target.checked;
-  state.block2Enabled = enabled;
-  block2Panel.classList.toggle("hidden", !enabled);
-  updatePreview();
-  updateTimerDisplay();
-  saveLastConfig({
-    name: state.name,
-    work: state.work,
-    rest: state.rest,
-    rounds: state.rounds,
-    warmup: state.warmup,
-    cooldown: state.cooldown,
-    block2Enabled: state.block2Enabled,
-    block2Work: state.block2Work,
-    block2Rest: state.block2Rest,
-    block2Rounds: state.block2Rounds,
-  });
-});
 
 saveBtn.addEventListener("click", () => {
   const defaultName = state.name || `${state.work}s / ${state.rest}s x${state.rounds}`;
@@ -1042,6 +1151,9 @@ saveBtn.addEventListener("click", () => {
     block2Work: state.block2Work,
     block2Rest: state.block2Rest,
     block2Rounds: state.block2Rounds,
+    block1Labels: state.block1Labels,
+    block2Labels: state.block2Labels,
+    favorite: false,
     savedAt: Date.now(),
   });
   savePresets(presets.slice(0, 12));
@@ -1064,6 +1176,8 @@ quickRestartBtn.addEventListener("click", () => {
   block2WorkInput.value = last.block2Work ?? 30;
   block2RestInput.value = last.block2Rest ?? 15;
   block2RoundsInput.value = last.block2Rounds ?? 4;
+  block1LabelsInput.value = last.block1Labels ?? "";
+  block2LabelsInput.value = last.block2Labels ?? "";
   state.name = last.name || "Custom interval";
   state.work = last.work;
   state.rest = last.rest;
@@ -1074,6 +1188,8 @@ quickRestartBtn.addEventListener("click", () => {
   state.block2Work = last.block2Work ?? 30;
   state.block2Rest = last.block2Rest ?? 15;
   state.block2Rounds = last.block2Rounds ?? 4;
+  state.block1Labels = last.block1Labels ?? "";
+  state.block2Labels = last.block2Labels ?? "";
   updatePreview();
   updateTimerDisplay();
   startTimer();
@@ -1084,7 +1200,8 @@ shareBtn.addEventListener("click", async () => {
   const blockText = blocks
     .map((block, idx) => `Block ${idx + 1}: ${block.work}s/${block.rest}s x${block.rounds}`)
     .join(" · ");
-  const message = `${state.name} · ${blockText}`;
+  const labelHint = state.block1Labels ? ` · Labels: ${state.block1Labels}` : "";
+  const message = `${state.name} · ${blockText}${labelHint}`;
   if (navigator.share) {
     try {
       await navigator.share({ title: "MyTR Timer", text: message });
@@ -1133,6 +1250,44 @@ importFileInput.addEventListener("change", async (event) => {
   } finally {
     importFileInput.value = "";
   }
+});
+
+const formatIcsDate = (date) => {
+  const pad = (n) => String(n).padStart(2, "0");
+  return `${date.getUTCFullYear()}${pad(date.getUTCMonth() + 1)}${pad(date.getUTCDate())}T${pad(
+    date.getUTCHours()
+  )}${pad(date.getUTCMinutes())}${pad(date.getUTCSeconds())}Z`;
+};
+
+exportIcsBtn.addEventListener("click", () => {
+  const title = state.name || "MyTR Timer Workout";
+  const durationMinutes = Math.max(1, Math.round((getTotalDuration() - (countdownToggle.checked ? 3 : 0)) / 60));
+  const now = new Date();
+  const start = new Date(now.getTime() + 5 * 60000);
+  const end = new Date(start.getTime() + durationMinutes * 60000);
+  const uid = `${Date.now()}@mytr-timer`;
+  const ics = [
+    "BEGIN:VCALENDAR",
+    "VERSION:2.0",
+    "PRODID:-//MyTR Timer//EN",
+    "BEGIN:VEVENT",
+    `UID:${uid}`,
+    `DTSTAMP:${formatIcsDate(now)}`,
+    `DTSTART:${formatIcsDate(start)}`,
+    `DTEND:${formatIcsDate(end)}`,
+    `SUMMARY:${title}`,
+    "END:VEVENT",
+    "END:VCALENDAR",
+  ].join("\\r\\n");
+  const blob = new Blob([ics], { type: "text/calendar" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `${title.replace(/\\s+/g, "-").toLowerCase()}.ics`;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
 });
 
 clearHistoryBtn.addEventListener("click", () => {
@@ -1196,6 +1351,28 @@ settingsToggle.addEventListener("click", () => {
   settingsPanel.classList.toggle("hidden");
 });
 
+jumpWorkBtn.addEventListener("click", () => {
+  if (!timerState.running) return;
+  const blocks = getBlocks();
+  const currentBlock = blocks[timerState.blockIndex] || blocks[0];
+  timerState.phase = "work";
+  timerState.duration = currentBlock.work;
+  timerState.remaining = currentBlock.work;
+  applyPhaseStyles();
+  updateTimerDisplay();
+});
+
+jumpRestBtn.addEventListener("click", () => {
+  if (!timerState.running) return;
+  const blocks = getBlocks();
+  const currentBlock = blocks[timerState.blockIndex] || blocks[0];
+  timerState.phase = "rest";
+  timerState.duration = currentBlock.rest;
+  timerState.remaining = currentBlock.rest;
+  applyPhaseStyles();
+  updateTimerDisplay();
+});
+
 workoutBtn.addEventListener("click", () => setWorkoutMode(true));
 exitWorkoutBtn.addEventListener("click", () => {
   if (document.fullscreenElement) {
@@ -1224,6 +1401,8 @@ resetBtn.addEventListener("click", () => {
   block2WorkInput.value = 30;
   block2RestInput.value = 15;
   block2RoundsInput.value = 4;
+  block1LabelsInput.value = "";
+  block2LabelsInput.value = "";
   state.name = "Custom interval";
   state.work = 40;
   state.rest = 20;
@@ -1234,6 +1413,8 @@ resetBtn.addEventListener("click", () => {
   state.block2Work = 30;
   state.block2Rest = 15;
   state.block2Rounds = 4;
+  state.block1Labels = "";
+  state.block2Labels = "";
   updatePreview();
   saveLastConfig({
     name: state.name,
@@ -1246,6 +1427,8 @@ resetBtn.addEventListener("click", () => {
     block2Work: state.block2Work,
     block2Rest: state.block2Rest,
     block2Rounds: state.block2Rounds,
+    block1Labels: state.block1Labels,
+    block2Labels: state.block2Labels,
   });
 });
 
@@ -1286,6 +1469,8 @@ if (lastConfig) {
   block2WorkInput.value = lastConfig.block2Work ?? 30;
   block2RestInput.value = lastConfig.block2Rest ?? 15;
   block2RoundsInput.value = lastConfig.block2Rounds ?? 4;
+  block1LabelsInput.value = lastConfig.block1Labels ?? "";
+  block2LabelsInput.value = lastConfig.block2Labels ?? "";
   state.name = nameInput.value;
   state.work = Number(workInput.value) || 40;
   state.rest = Number(restInput.value) || 20;
@@ -1296,6 +1481,8 @@ if (lastConfig) {
   state.block2Work = Number(block2WorkInput.value) || 30;
   state.block2Rest = Number(block2RestInput.value) || 15;
   state.block2Rounds = Number(block2RoundsInput.value) || 4;
+  state.block1Labels = block1LabelsInput.value;
+  state.block2Labels = block2LabelsInput.value;
 } else {
   nameInput.value = state.name;
 }
