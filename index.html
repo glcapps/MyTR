@@ -1,0 +1,320 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#0f172a" />
+    <meta name="description" content="MyTR Timer — fast interval timer" />
+
+    <title>MyTR Timer</title>
+
+    <link rel="manifest" href="./manifest.json" />
+    <link rel="icon" href="./assets/icon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="./assets/icon.svg" />
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              ink: "#0f172a",
+              slate: "#94a3b8",
+              mint: "#5eead4",
+              neon: "#22d3ee",
+            },
+            fontFamily: {
+              display: ["'Space Grotesk'", "ui-sans-serif", "system-ui"],
+              body: ["'IBM Plex Sans'", "ui-sans-serif", "system-ui"],
+            },
+          },
+        },
+      };
+    </script>
+    <style>
+      body.workout-mode [data-workout-hide] {
+        display: none !important;
+      }
+      body.workout-mode #run-panel {
+        position: fixed;
+        inset: 0;
+        margin: 0;
+        border-radius: 0;
+        padding: 2.5rem 2rem;
+        background: radial-gradient(circle at top, rgba(34, 211, 238, 0.18), rgba(15, 23, 42, 0.96));
+        z-index: 50;
+      }
+      body.workout-mode #timer-display {
+        font-size: clamp(4rem, 18vw, 10rem);
+        letter-spacing: 0.02em;
+      }
+      body.workout-mode #round-display {
+        font-size: 1.1rem;
+      }
+    </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body class="bg-ink text-white min-h-screen">
+    <div class="min-h-screen bg-gradient-to-br from-ink via-[#111827] to-[#0b1326]">
+      <header class="px-6 py-6 max-w-5xl mx-auto" data-workout-hide>
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <img src="./assets/icon.svg" alt="MyTR Timer" class="h-10 w-10" />
+            <div>
+              <p class="text-xs uppercase tracking-[0.3em] text-slate">Interval</p>
+              <h1 class="font-display text-2xl">MyTR Timer</h1>
+            </div>
+          </div>
+          <button
+            id="install-btn"
+            class="hidden rounded-full border border-white/15 px-4 py-2 text-sm text-white/90 hover:border-white/40"
+          >
+            Install
+          </button>
+        </div>
+      </header>
+
+      <main class="px-6 pb-16 max-w-5xl mx-auto">
+        <section class="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
+          <div class="rounded-3xl border border-white/10 bg-white/5 p-8 shadow-[0_20px_60px_-30px_rgba(94,234,212,0.45)]">
+            <div data-workout-hide>
+              <div class="flex items-start justify-between">
+                <div>
+                  <p class="text-sm text-slate">Workout</p>
+                  <h2 class="font-display text-4xl">Interval Builder</h2>
+                  <p class="mt-2 text-slate">
+                    Quick edits, high visibility, always available offline.
+                  </p>
+                </div>
+                <div class="rounded-full bg-white/10 px-4 py-2 text-xs text-mint">Ready to Install</div>
+              </div>
+
+              <div class="mt-8 flex flex-wrap items-center gap-3">
+                <button
+                  class="template-btn rounded-full border border-white/15 px-4 py-2 text-sm text-white/90 hover:border-white/40"
+                  data-work="20"
+                  data-rest="10"
+                  data-rounds="8"
+                >
+                  Tabata 20/10 x8
+                </button>
+                <button
+                  class="template-btn rounded-full border border-white/15 px-4 py-2 text-sm text-white/90 hover:border-white/40"
+                  data-work="40"
+                  data-rest="20"
+                  data-rounds="6"
+                >
+                  HIIT 40/20 x6
+                </button>
+                <button
+                  class="template-btn rounded-full border border-white/15 px-4 py-2 text-sm text-white/90 hover:border-white/40"
+                  data-work="60"
+                  data-rest="30"
+                  data-rounds="5"
+                >
+                  Strength 60/30 x5
+                </button>
+              </div>
+
+              <div class="mt-6">
+                <label class="block">
+                  <span class="text-xs text-slate">Workout name</span>
+                  <input
+                    id="name-input"
+                    type="text"
+                    maxlength="40"
+                    class="mt-2 w-full rounded-2xl bg-white/10 px-4 py-3 text-lg text-white outline-none ring-1 ring-white/10 focus:ring-2 focus:ring-white"
+                    placeholder="Custom interval"
+                  />
+                </label>
+              </div>
+
+              <div class="mt-6 grid gap-4 md:grid-cols-3">
+                <label class="block">
+                  <span class="text-xs text-slate">Work (sec)</span>
+                  <input
+                    id="work-input"
+                    type="number"
+                    min="5"
+                    step="5"
+                    class="mt-2 w-full rounded-2xl bg-white/10 px-4 py-3 text-lg text-white outline-none ring-1 ring-white/10 focus:ring-2 focus:ring-mint"
+                    value="40"
+                  />
+                </label>
+                <label class="block">
+                  <span class="text-xs text-slate">Rest (sec)</span>
+                  <input
+                    id="rest-input"
+                    type="number"
+                    min="5"
+                    step="5"
+                    class="mt-2 w-full rounded-2xl bg-white/10 px-4 py-3 text-lg text-white outline-none ring-1 ring-white/10 focus:ring-2 focus:ring-neon"
+                    value="20"
+                  />
+                </label>
+                <label class="block">
+                  <span class="text-xs text-slate">Rounds</span>
+                  <input
+                    id="rounds-input"
+                    type="number"
+                    min="1"
+                    step="1"
+                    class="mt-2 w-full rounded-2xl bg-white/10 px-4 py-3 text-lg text-white outline-none ring-1 ring-white/10 focus:ring-2 focus:ring-white"
+                    value="6"
+                  />
+                </label>
+              </div>
+
+              <div class="mt-6 flex flex-wrap gap-3">
+                <button
+                  id="start-btn"
+                  class="rounded-full bg-mint px-6 py-3 text-sm font-semibold text-ink hover:bg-[#7ff5df]"
+                >
+                  Start Session
+                </button>
+                <button
+                  id="save-btn"
+                  class="rounded-full border border-white/15 px-6 py-3 text-sm font-semibold text-white/90 hover:border-white/40"
+                >
+                  Save Preset
+                </button>
+                <button
+                  id="reset-btn"
+                  class="rounded-full border border-white/15 px-6 py-3 text-sm text-white/70 hover:border-white/40"
+                >
+                  Reset
+                </button>
+                <button
+                  id="quick-restart"
+                  class="rounded-full border border-white/15 px-6 py-3 text-sm text-white/70 hover:border-white/40"
+                >
+                  Restart Last
+                </button>
+                <button
+                  id="clear-history"
+                  class="rounded-full border border-white/15 px-6 py-3 text-sm text-white/50 hover:border-white/40"
+                >
+                  Clear History
+                </button>
+                <label class="flex items-center gap-2 text-sm text-white/80">
+                  <input id="sound-toggle" type="checkbox" class="h-4 w-4 accent-mint" checked />
+                  Sound cues
+                </label>
+                <label class="flex items-center gap-2 text-sm text-white/80">
+                  <input id="vibrate-toggle" type="checkbox" class="h-4 w-4 accent-neon" />
+                  Vibration cues
+                </label>
+                <label class="flex items-center gap-2 text-sm text-white/80">
+                  <input id="start-sound" type="checkbox" class="h-4 w-4 accent-mint" checked />
+                  Start sound
+                </label>
+              </div>
+
+              <div class="mt-8 rounded-2xl border border-white/10 bg-black/30 p-6">
+                <p class="text-xs uppercase tracking-[0.25em] text-slate">Preview</p>
+                <div class="mt-4 text-5xl font-display" id="preview">
+                  40s Work · 20s Rest · 6 Rounds
+                </div>
+                <p class="mt-3 text-sm text-slate">Session length: <span id="session-length">6:00</span></p>
+              </div>
+            </div>
+
+            <div id="run-panel" class="mt-6 rounded-2xl border border-white/10 bg-black/50 p-6">
+              <div class="flex items-center justify-between">
+                <p class="text-xs uppercase tracking-[0.25em] text-slate">Run</p>
+                <span id="phase-pill" class="rounded-full bg-white/10 px-3 py-1 text-xs text-slate">
+                  Ready
+                </span>
+              </div>
+              <div class="mt-2 text-sm text-slate">
+                Now: <span id="current-name">Custom interval</span>
+              </div>
+              <div class="mt-4 flex items-baseline gap-3">
+                <div id="timer-display" class="text-6xl font-display">00:00</div>
+                <div class="text-sm text-slate" id="round-display">Round 0 / 0</div>
+              </div>
+              <div class="mt-2 text-sm text-slate">
+                Total remaining: <span id="total-remaining">0:00</span>
+              </div>
+              <div class="mt-4 h-2 w-full rounded-full bg-white/10">
+                <div id="progress-bar" class="h-2 w-0 rounded-full bg-mint transition-all"></div>
+              </div>
+              <div class="mt-6 flex flex-wrap gap-3">
+                <button
+                  id="workout-btn"
+                  class="rounded-full border border-white/15 px-5 py-2 text-sm font-semibold text-white/90 hover:border-white/40"
+                >
+                  Workout Mode
+                </button>
+                <button
+                  id="pause-btn"
+                  class="rounded-full border border-white/15 px-5 py-2 text-sm font-semibold text-white/90 hover:border-white/40"
+                >
+                  Pause
+                </button>
+                <button
+                  id="stop-btn"
+                  class="rounded-full border border-white/15 px-5 py-2 text-sm text-white/70 hover:border-white/40"
+                >
+                  Stop
+                </button>
+                <button
+                  id="exit-workout-btn"
+                  class="hidden rounded-full border border-white/15 px-5 py-2 text-sm text-white/70 hover:border-white/40"
+                >
+                  Exit
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex flex-col gap-6" data-workout-hide>
+            <div class="rounded-3xl border border-white/10 bg-white/5 p-6">
+              <h3 class="font-display text-2xl">Saved Presets</h3>
+              <p class="mt-2 text-sm text-slate">
+                Stored locally on this device.
+              </p>
+              <div id="preset-list" class="mt-4 flex flex-col gap-3"></div>
+            </div>
+
+            <div class="rounded-3xl border border-white/10 bg-white/5 p-6">
+              <h3 class="font-display text-2xl">Recent Sessions</h3>
+              <p class="mt-2 text-sm text-slate">
+                Completed runs are stored locally.
+              </p>
+              <div id="history-list" class="mt-4 flex flex-col gap-3"></div>
+            </div>
+
+            <div class="rounded-3xl border border-white/10 bg-white/5 p-6">
+              <h3 class="font-display text-2xl">Offline State</h3>
+              <p class="mt-2 text-sm text-slate">
+                Loads fast and keeps working if you lose connectivity.
+              </p>
+              <div class="mt-4 text-sm text-slate">
+                Cache status: <span id="cache-status">checking...</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+      </main>
+    </div>
+
+    <script src="./js/app.js"></script>
+    <script>
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", () => {
+          navigator.serviceWorker
+            .register("./sw.js")
+            .then(() => console.log("SW registered"))
+            .catch((err) => console.warn("SW registration failed", err));
+        });
+      }
+    </script>
+  </body>
+</html>
