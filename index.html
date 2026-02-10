@@ -231,6 +231,18 @@
                 </label>
               </div>
 
+              <div class="mt-4">
+                <label class="block">
+                  <span class="text-xs text-slate">Round labels (Block 1)</span>
+                  <input
+                    id="block1-labels"
+                    type="text"
+                    class="mt-2 w-full rounded-2xl bg-white/10 px-4 py-3 text-sm text-white outline-none ring-1 ring-white/10 focus:ring-2 focus:ring-white"
+                    placeholder="e.g., Sprint, Push, Recover"
+                  />
+                </label>
+              </div>
+
               <div class="mt-4 flex flex-wrap items-center gap-3">
                 <label class="flex items-center gap-2 text-sm text-white/80">
                   <input id="block2-toggle" type="checkbox" class="h-4 w-4 accent-white" />
@@ -270,6 +282,15 @@
                     step="1"
                     class="mt-2 w-full rounded-2xl bg-white/10 px-4 py-3 text-lg text-white outline-none ring-1 ring-white/10 focus:ring-2 focus:ring-white"
                     value="4"
+                  />
+                </label>
+                <label class="block md:col-span-3">
+                  <span class="text-xs text-slate">Round labels (Block 2)</span>
+                  <input
+                    id="block2-labels"
+                    type="text"
+                    class="mt-2 w-full rounded-2xl bg-white/10 px-4 py-3 text-sm text-white outline-none ring-1 ring-white/10 focus:ring-2 focus:ring-white"
+                    placeholder="e.g., Climb, Hold, Burn"
                   />
                 </label>
               </div>
@@ -428,6 +449,20 @@
                 <div id="timer-display" class="text-6xl font-display cursor-pointer transition-opacity select-none">00:00</div>
                 <div class="text-sm text-slate" id="round-display">Round 0 / 0</div>
               </div>
+              <div class="mt-2 grid gap-3 sm:grid-cols-2" data-workout-hide>
+                <button
+                  id="jump-work"
+                  class="rounded-full border border-white/15 px-4 py-2 text-xs text-white/80 hover:border-white/40"
+                >
+                  Jump to Work
+                </button>
+                <button
+                  id="jump-rest"
+                  class="rounded-full border border-white/15 px-4 py-2 text-xs text-white/80 hover:border-white/40"
+                >
+                  Jump to Rest
+                </button>
+              </div>
               <div class="mt-1 text-xs text-slate/70">
                 Tap the timer to pause/resume.
               </div>
@@ -439,6 +474,9 @@
               </div>
               <div class="mt-2 text-sm text-slate">
                 Next: <span id="next-phase">Work</span>
+              </div>
+              <div class="mt-2 text-sm text-slate">
+                Round label: <span id="round-label">—</span>
               </div>
               <div
                 id="complete-banner"
@@ -491,7 +529,7 @@
           </div>
 
           <div class="flex w-full flex-col gap-6 lg:max-w-md xl:max-w-lg" data-workout-hide>
-            <div class="rounded-3xl border border-white/10 bg-white/5 p-6" id="history-panel">
+            <div class="rounded-3xl border border-white/10 bg-white/5 p-6" id="presets-panel">
               <h3 class="font-display text-2xl">Saved Presets</h3>
               <p class="mt-2 text-sm text-slate">
                 Stored locally on this device.
@@ -509,12 +547,18 @@
                 >
                   Import
                 </button>
+                <button
+                  id="export-ics"
+                  class="rounded-full border border-white/15 px-4 py-2 text-sm text-white/70 hover:border-white/40"
+                >
+                  Add to Calendar
+                </button>
                 <input id="import-file" type="file" accept="application/json" class="hidden" />
               </div>
               <div id="preset-list" class="mt-4 flex flex-col gap-3"></div>
             </div>
 
-            <div class="rounded-3xl border border-white/10 bg-white/5 p-6">
+            <div class="rounded-3xl border border-white/10 bg-white/5 p-6" id="history-panel">
               <h3 class="font-display text-2xl">Recent Sessions</h3>
               <p class="mt-2 text-sm text-slate">
                 Completed runs are stored locally.
